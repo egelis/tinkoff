@@ -1,5 +1,7 @@
 *.env
 *.csv
+*.xlsx
 .ideagit
 .idea
 venv/
+sources/__pycache__/
