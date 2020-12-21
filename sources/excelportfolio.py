@@ -4,7 +4,7 @@ from pprint import pprint
 import openpyxl
 
 
-class Excel:
+class ExcelPortfolio:
     """Класс по работе с файлами Excel"""
 
     def __init__(self, filename, sheet, portfolio_table):
