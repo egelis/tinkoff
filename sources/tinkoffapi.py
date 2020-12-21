@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 
 from dotenv import load_dotenv
 import tinvest
@@ -9,12 +10,12 @@ class TinkoffApi:
 
     def __init__(self):
         self.__init_env_var()
+
         token = os.getenv('TINKOFF_API_TOKEN')
-        account_id = os.getenv("TINKOFF_BROKER_ACCOUNT")
-
         self.__client = tinvest.SyncClient(token)
-        api = tinvest.PortfolioApi(self.__client)
 
+        api = tinvest.PortfolioApi(self.__client)
+        account_id = os.getenv("TINKOFF_BROKER_ACCOUNT")
         self.__positions = api.portfolio_get(broker_account_id=account_id) \
             .parse_json().payload.positions
         self.__balance = api.portfolio_currencies_get(broker_account_id=account_id) \
