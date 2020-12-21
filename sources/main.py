@@ -14,11 +14,10 @@ if __name__ == "__main__":
 
     converter = TableCreator(positions, balance, usd_course)
     portfolio = converter.get_portfolio_table_for_excel()
-    # pprint(portfolio)
-    # print(converter.get_portfolio_price())
+    pprint(portfolio)
 
     excel_file = ExcelPortfolio('Инвест профиль.xlsx', 'Лист1', portfolio)
     excel_file.write_positions()
     excel_file.write_balance()
 
-    # os.system(f'start excel.exe \"../Инвест профиль.xlsx\""')
+    os.system(f'start excel.exe \"../Инвест профиль.xlsx\""')
