@@ -7,9 +7,10 @@ import openpyxl
 class ExcelPortfolio:
     """Класс по работе с файлами Excel"""
 
-    def __init__(self, filename, sheet, portfolio_table):
+    def __init__(self, filename, sheet, portfolio_table, portfolio_price):
         self.filename = f'../{filename}'
         self.portfolio_table = portfolio_table
+        self.portfolio_price = portfolio_price
 
         # Открытие файла и страницы в файле Excel
         # Если файла не существует, то он создается
@@ -22,38 +23,63 @@ class ExcelPortfolio:
             self.worksheet.title = sheet
             self.workbook.save(self.filename)
 
-        self.init_name_columns()
+    def write_balance(self, min_row, min_col):
+        """
+        Запись текущего баланса в портфеле
+        Принимает левый верхний угол, с которого начинается заполнение
+        """
 
-    def write_balance(self):
-        """Запись текущего баланса в портфеле"""
         balance = self.portfolio_table['balance']
 
-        for row, position in zip(self.worksheet.iter_rows(min_row=12, max_row=len(balance)+12, min_col=4, max_col=4), balance.keys()):
+        for row, position in zip(self.worksheet.iter_rows(min_row=min_row, max_row=len(balance) + min_row,
+                                                          min_col=min_col, max_col=min_col), balance.keys()):
             for cell in row:
                 cell.value = f'Баланс ({position})'
 
-        for row, position in zip(self.worksheet.iter_rows(min_row=12, max_row=len(balance)+12, min_col=5, max_col=5), balance.values()):
+        for row, position in zip(self.worksheet.iter_rows(min_row=min_row, max_row=len(balance) + min_row,
+                                                          min_col=min_col + 1, max_col=min_col + 1), balance.values()):
             for cell in row:
                 cell.value = position
 
         self.workbook.save(self.filename)
 
-    def write_positions(self):
-        """Запись текущих позиций бумаг портфеля"""
+    def write_positions(self, min_row, min_col):
+        """
+        Запись текущих позиций бумаг портфеля
+        Принимает левый верхний угол, с которого начинается заполнение
+        """
+
         positions = self.portfolio_table['positions']
 
-        for row, position in zip(self.worksheet.iter_rows(min_row=2, max_row=len(positions)+2, max_col=len(positions[0])), positions):
+        for row, position in zip(
+                self.worksheet.iter_rows(min_row=min_row, min_col=min_col, max_row=len(positions) + min_row,
+                                         max_col=len(positions[0]) + min_col), positions):
             for cell, el in zip(row, position):
                 cell.value = el
 
         self.workbook.save(self.filename)
 
-    def init_name_columns(self):
-        """Инициализация имен колонок таблицы"""
+    def write_names_of_columns(self, min_row, min_col):
+        """
+        Написание имен колонок таблицы
+        Принимает левый верхний угол, с которого начинается заполнение
+        """
+
         names_of_table = self.portfolio_table['names_of_table']
 
-        for col, name in zip(self.worksheet.iter_cols(max_row=1, max_col=len(names_of_table)), names_of_table):
+        for col, name in zip(self.worksheet.iter_cols(min_row=min_row, min_col=min_col, max_row=min_row,
+                                                      max_col=len(names_of_table) + min_col), names_of_table):
             for cell in col:
                 cell.value = name
+
+        self.workbook.save(self.filename)
+
+    def write_portfolio_price_rub(self):
+        """
+        Написание итоговой цены портфеля
+        Принимает левый верхний угол, с которого начинается заполнение
+        """
+        self.worksheet['A1'] = 'Общая цена портфеля:'
+        self.worksheet['B1'] = self.portfolio_price
 
         self.workbook.save(self.filename)

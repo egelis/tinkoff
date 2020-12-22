@@ -50,6 +50,7 @@ class TableCreator:
             total_position_price_rub = f"{self.get_total_position_price_rub(position)} {self.get_currency_symbol('RUB')}"
             unit_price = round(position.average_position_price.value + (position.expected_yield.value /
                                                                         position.balance), 2)
+            # Имя, тикер, цена за шт., кол-во, итоговая цена в руб., процент. составляющая в портфеле
             result.append((position.name,
                            position.ticker,
                            f'{unit_price} {self.get_currency_symbol(position.average_position_price.currency)}',
