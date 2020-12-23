@@ -17,9 +17,6 @@ if __name__ == "__main__":
     portfolio_price = converter.get_portfolio_price_rub()
 
     excel_file = ExcelPortfolio('Инвест профиль.xlsx', 'Лист1', portfolio, portfolio_price)
-    excel_file.write_names_of_columns(3, 1)
-    excel_file.write_positions(4, 1)
-    excel_file.write_balance(len(portfolio['positions']) + 4 + 1, 4)
-    excel_file.write_portfolio_price_rub()
+    excel_file.write_table_to_excel()
 
     os.system(f'start excel.exe \"../Инвест профиль.xlsx\""')

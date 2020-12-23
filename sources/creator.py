@@ -15,7 +15,7 @@ class TableCreator:
             price += self.get_total_position_price_rub(position)
         price += self.balance[0].balance  # Рублевый баланс
 
-        return f"{round(price, 2)} {self.get_currency_symbol('RUB')}"
+        return f"{round(price, 2)} {self.get_currency_symbol('RUB')}".replace('.', ',')
 
     @staticmethod
     def get_currency_symbol(currency) -> str:
@@ -45,24 +45,26 @@ class TableCreator:
         result = []
 
         for position in self.positions:
-            if position.name in ('Доллар США', 'Евро'):
-                continue
+            # if position.name in ('Доллар США', 'Евро'):
+            #     continue
             total_position_price_rub = f"{self.get_total_position_price_rub(position)} {self.get_currency_symbol('RUB')}"
             unit_price = round(position.average_position_price.value + (position.expected_yield.value /
                                                                         position.balance), 2)
             # Имя, тикер, цена за шт., кол-во, итоговая цена в руб., процент. составляющая в портфеле
             result.append((position.name,
                            position.ticker,
-                           f'{unit_price} {self.get_currency_symbol(position.average_position_price.currency)}',
+                           f'{unit_price} {self.get_currency_symbol(position.average_position_price.currency)}'.replace(
+                               '.', ','),
                            position.balance,
-                           total_position_price_rub))
+                           total_position_price_rub.replace('.', ',')))
 
         return result
 
     def get_balance_for_table(self) -> dict:
         result = {}
         for position in self.balance:
-            result[position.currency.value] = f'{position.balance} {self.get_currency_symbol(position.currency.value)}'
+            price = f'{position.balance} {self.get_currency_symbol(position.currency.value)}'.replace('.', ',')
+            result[position.currency.value] = price
 
         return result
 
