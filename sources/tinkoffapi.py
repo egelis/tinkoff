@@ -1,5 +1,5 @@
 import os
-from pprint import pprint
+from decimal import Decimal
 
 from dotenv import load_dotenv
 import tinvest
@@ -21,17 +21,20 @@ class TinkoffApi:
         if os.path.exists(dotenv_path):
             load_dotenv(dotenv_path=dotenv_path)
 
-    def get_usd_course(self) -> float:
+    def get_usd_course(self) -> Decimal:
         """Получение курса USD"""
-        return tinvest.MarketApi(self.__client).market_orderbook_get(figi="BBG0013HGFT4", depth=1) \
-            .parse_json().payload.last_price
+        return self.__client.get_market_orderbook(figi="BBG0013HGFT4", depth=1).payload.last_price
+
+    def get_eur_course(self) -> Decimal:
+        """Получение курса EUR"""
+        return self.__client.get_market_orderbook(figi="BBG0013HJJ31", depth=1).payload.last_price
 
     def get_portfolio_positions(self) -> list:
         """Получение всех позиций портфеля"""
-        return tinvest.PortfolioApi(self.__client).portfolio_get(broker_account_id=self.__account_id) \
-            .parse_json().payload.positions
+        return self.__client.get_portfolio(broker_account_id=self.__account_id) \
+            .payload.positions
 
     def get_portfolio_balance(self) -> list:
         """Получение баланса портфеля во всех валютах"""
-        return tinvest.PortfolioApi(self.__client).portfolio_currencies_get(broker_account_id=self.__account_id) \
-            .parse_json().payload.currencies
+        return self.__client.get_portfolio_currencies(broker_account_id=self.__account_id) \
+            .payload.currencies
