@@ -7,7 +7,7 @@ from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Fo
 
 
 class ExcelWriter:
-    """Класс по работе с файлами Excel"""
+    """Класс, записывающий данные портфолио в файл Excel"""
 
     def __init__(self, filename, sheet, positions, balance, courses):
         self.filename = f'../{filename}.xlsx'
@@ -90,6 +90,33 @@ class ExcelWriter:
 
         self.workbook.save(self.filename)
 
+    def write_positions(self):
+        # Данным методом идем по строкам (cell - очередная ячейка строки), тут len(self.positions) строк
+        for cells, position in zip(self.worksheet['A7':f'F{len(self.positions) + 7 - 1}'], self.positions):
+            unit_price = get_unit_price(position)
+            elements_of_position = (f'{position.name}, {position.average_position_price.currency}',
+                                    get_unit_type(position),
+                                    position.ticker,
+                                    unit_price,
+                                    position.balance,
+                                    get_total_position_price_rub(position, self.courses))
+
+            for i, cell in enumerate(cells, start=0):
+                location = 'right' if i in (3, 5) else 'left' if i in (0,) else 'center'
+                cell.alignment = Alignment(horizontal=location, vertical="center")
+                cell.value = elements_of_position[i]
+
+        self.workbook.save(self.filename)
+
+    def write_positions_percentages(self):
+        ws = self.worksheet
+
+        for i in range(7, len(self.positions) + 7):
+            ws[f'G{i}'].alignment = Alignment(horizontal='center', vertical="center")
+            ws[f'G{i}'] = f'=F{i} / B$1'
+
+        self.workbook.save(self.filename)
+
     def write_table_to_excel(self):
         # pprint(self.positions)
         # pprint(self.balance)
@@ -101,6 +128,32 @@ class ExcelWriter:
         self.write_ratios()
 
         self.write_names_of_columns()
+        self.write_positions()
+        self.write_positions_percentages()
+
+
+def get_unit_type(position) -> str:
+    bonds = ('FinEx Еврооблигации рос. компаний (RUB)',
+             'FinEx Еврооблигации рос. компаний (USD)')
+
+    gold = ('FinEx Золото',)
+
+    currency = ('Доллар США',
+                'Евро')
+
+    if position.instrument_type == 'Bond' or position.name in bonds:
+        return 'Облигации'
+    elif position.name in currency:
+        return 'Валюта'
+    elif position.name in gold:
+        return 'Золото'
+    else:
+        return 'Акции'
+
+
+def get_unit_price(position) -> Decimal:
+    return Decimal(round(position.average_position_price.value + (position.expected_yield.value /
+                                                                  position.balance), 2))
 
 
 def get_total_position_price_rub(position, courses) -> Decimal:
