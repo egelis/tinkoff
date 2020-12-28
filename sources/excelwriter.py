@@ -117,11 +117,27 @@ class ExcelWriter:
 
         self.workbook.save(self.filename)
 
-    def write_table_to_excel(self):
-        # pprint(self.positions)
-        # pprint(self.balance)
-        # pprint(self.courses)
+    def write_revisions(self):
+        ws = self.worksheet
 
+        # %
+        for i in range(7, len(self.positions) + 7):
+            ws[f'I{i}'].alignment = Alignment(horizontal='center', vertical="center")
+            ws[f'I{i}'] = f'=H{i} - G{i}'
+
+        # руб.
+        for i in range(7, len(self.positions) + 7):
+            ws[f'J{i}'].alignment = Alignment(horizontal='right', vertical="center")
+            ws[f'J{i}'] = f'=I{i} * B$1'
+
+        # долл.
+        for i in range(7, len(self.positions) + 7):
+            ws[f'K{i}'].alignment = Alignment(horizontal='right', vertical="center")
+            ws[f'K{i}'] = f'=J{i} / E$1'
+
+        self.workbook.save(self.filename)
+
+    def write_table_to_excel(self):
         self.write_portfolio_price()
         self.write_balance()
         self.write_courses()
@@ -130,6 +146,7 @@ class ExcelWriter:
         self.write_names_of_columns()
         self.write_positions()
         self.write_positions_percentages()
+        self.write_revisions()
 
 
 def get_unit_type(position) -> str:

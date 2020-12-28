@@ -1,5 +1,3 @@
-from pprint import pprint
-from decimal import Decimal
 import os
 
 from tinkoffapi import TinkoffApi
@@ -14,4 +12,5 @@ if __name__ == "__main__":
     excel_writer = ExcelWriter('Инвест профиль', 'Инвестиции', positions, balance, courses)
     excel_writer.write_table_to_excel()
 
-    # os.system(f'start excel.exe \"../Инвест профиль.xlsx\""')
+    print('COMPLETE!')
+    os.system(f'start excel.exe \"../Инвест профиль.xlsx\""')
