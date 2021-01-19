@@ -1,9 +1,8 @@
 import os
 from decimal import Decimal
-from pprint import pprint
 
 import openpyxl
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font, fonts
+from openpyxl.styles import Alignment, Font
 
 
 class ExcelWriter:
@@ -91,6 +90,9 @@ class ExcelWriter:
         self.workbook.save(self.filename)
 
     def write_positions(self):
+        # Располагаем облигации первыми в списке
+        self.positions.sort(key=lambda pos: get_unit_type(pos) != 'Облигации')
+
         # Данным методом идем по строкам (cell - очередная ячейка строки), тут len(self.positions) строк
         for cells, position in zip(self.worksheet['A7':f'F{len(self.positions) + 7 - 1}'], self.positions):
             unit_price = get_unit_price(position)
@@ -120,18 +122,36 @@ class ExcelWriter:
     def write_revisions(self):
         ws = self.worksheet
 
+        number_of_bounds = 0
+        for position in self.positions:
+            if get_unit_type(position) == 'Облигации':
+                number_of_bounds += 1
+
+        # Объединение и обобщенный подсчет правок для всех Облигаций
+        ws.merge_cells(f'I7:I{6 + number_of_bounds}')
+        ws['I7'].alignment = Alignment(horizontal='center', vertical="center")
+        ws['I7'] = f'=H7-SUM(G7:G{6 + number_of_bounds})'
+
+        ws.merge_cells(f'J7:J{6 + number_of_bounds}')
+        ws['J7'].alignment = Alignment(horizontal='right', vertical="center")
+        ws['J7'] = '=I7 * B$1'
+
+        ws.merge_cells(f'K7:K{6 + number_of_bounds}')
+        ws['K7'].alignment = Alignment(horizontal='right', vertical="center")
+        ws['K7'] = '=J7 / E$1'
+
         # %
-        for i in range(7, len(self.positions) + 7):
+        for i in range(7 + number_of_bounds, len(self.positions) + 7):
             ws[f'I{i}'].alignment = Alignment(horizontal='center', vertical="center")
             ws[f'I{i}'] = f'=H{i} - G{i}'
 
         # руб.
-        for i in range(7, len(self.positions) + 7):
+        for i in range(7 + number_of_bounds, len(self.positions) + 7):
             ws[f'J{i}'].alignment = Alignment(horizontal='right', vertical="center")
             ws[f'J{i}'] = f'=I{i} * B$1'
 
         # долл.
-        for i in range(7, len(self.positions) + 7):
+        for i in range(7 + number_of_bounds, len(self.positions) + 7):
             ws[f'K{i}'].alignment = Alignment(horizontal='right', vertical="center")
             ws[f'K{i}'] = f'=J{i} / E$1'
 
@@ -151,7 +171,9 @@ class ExcelWriter:
 
 def get_unit_type(position) -> str:
     bonds = ('FinEx Еврооблигации рос. компаний (RUB)',
-             'FinEx Еврооблигации рос. компаний (USD)')
+             'FinEx Еврооблигации рос. компаний (USD)',
+             'FinEx Казначейские облигации США (USD)',
+             'FinEx Казначейские облигации США')
 
     gold = ('FinEx Золото',)
 
