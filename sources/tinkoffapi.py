@@ -1,5 +1,7 @@
 import os
 from decimal import Decimal
+from datetime import datetime
+from pytz import timezone
 
 from dotenv import load_dotenv
 import tinvest
@@ -13,11 +15,12 @@ class TinkoffApi:
 
         self.__client = tinvest.SyncClient(os.getenv('TINKOFF_API_TOKEN'))
         self.__account_id = os.getenv("TINKOFF_BROKER_ACCOUNT")
+        self.__broker_account_started_at = datetime.strptime(os.getenv("TINKOFF_ACCOUNT_STARTED"), '%d.%m.%Y')
 
     @staticmethod
     def __init_env_var():
         """Инициализация переменных окружения"""
-        dotenv_path = os.path.join(os.path.dirname(__file__), '..\.env')
+        dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
         if os.path.exists(dotenv_path):
             load_dotenv(dotenv_path=dotenv_path)
 
@@ -38,3 +41,17 @@ class TinkoffApi:
         """Получение баланса портфеля во всех валютах"""
         return self.__client.get_portfolio_currencies(broker_account_id=self.__account_id) \
             .payload.currencies
+
+    def get_portfolio_operations(self) -> list:
+        """Получение операций, совершенных с портфелем"""
+        moscow_tz = timezone('Europe/Moscow')
+        from_ = moscow_tz.localize(self.__broker_account_started_at)
+        now = moscow_tz.localize(datetime.now())
+
+        return self.__client.get_operations(broker_account_id=self.__account_id, from_=from_, to=now) \
+            .payload.operations
+
+    def get_candle_from_date(self, figi, from_, to, interval="15min"):
+        """Получение исторических свечей по figi"""
+        return self.__client.get_market_candles(figi=figi, from_=from_, to=to,
+                                                interval=tinvest.CandleResolution(interval))

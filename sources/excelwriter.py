@@ -1,5 +1,6 @@
 import os
 from decimal import Decimal
+import datetime
 
 import openpyxl
 from openpyxl.styles import Alignment, Font
@@ -8,11 +9,12 @@ from openpyxl.styles import Alignment, Font
 class ExcelWriter:
     """Класс, записывающий данные портфолио в файл Excel"""
 
-    def __init__(self, filename, sheet, positions, balance, courses):
+    def __init__(self, filename, sheet, positions, balance, courses, operations):
         self.filename = f'../{filename}.xlsx'
         self.positions = positions
         self.balance = balance
         self.courses = courses
+        self.operations = operations
 
         # Открытие файла и страницы в файле Excel
         # Если файла не существует, то он создается
@@ -157,6 +159,11 @@ class ExcelWriter:
 
         self.workbook.save(self.filename)
 
+    def write_pay_in(self):
+        print(f'Пополнения: {round(get_sum_pay_in(self.operations), 2)}')
+        portfolio_price = get_portfolio_price(self.balance, self.positions, self.courses)
+        print(f'Прибыль от вложенной суммы: {round(100 * (1 - get_sum_pay_in(self.operations) / portfolio_price), 2)} %')
+
     def write_table_to_excel(self):
         self.write_portfolio_price()
         self.write_balance()
@@ -167,6 +174,8 @@ class ExcelWriter:
         self.write_positions()
         self.write_positions_percentages()
         self.write_revisions()
+
+        self.write_pay_in()
 
 
 def get_unit_type(position) -> str:
@@ -217,3 +226,21 @@ def get_portfolio_price(balance, positions, courses) -> Decimal:
     price += Decimal(balance[0].balance)  # Баланс в RUB
 
     return price
+
+
+def get_sum_pay_in(operations) -> Decimal:
+    sum_pay_in = Decimal(0)
+    get_candle_from_date = operations[1]
+    for operation in operations[0]:
+        if operation.operation_type.value == "PayIn" or operation.operation_type.value == "PayOut":
+            if operation.currency.value == "USD":
+                course_from_date = get_candle_from_date(
+                    "BBG0013HGFT4",
+                    str(operation.date - datetime.timedelta(minutes=15)).replace(" ", "T"),
+                    str(operation.date).replace(" ", "T")
+                ).payload.candles[0].c
+
+                sum_pay_in += Decimal(str(operation.payment * course_from_date))
+            else:
+                sum_pay_in += Decimal(str(operation.payment))
+    return sum_pay_in
