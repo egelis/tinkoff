@@ -14,6 +14,6 @@ if __name__ == "__main__":
     excel_writer.write_table_to_excel()
 
     print('COMPLETE!')
-    # os.system(f'start excel.exe \"../Инвест профиль.xlsx\""')
+    os.system(f'start excel.exe \"../Инвест профиль.xlsx\""')
 
 # except tinvest.exceptions.UnexpectedError:

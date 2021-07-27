@@ -68,7 +68,7 @@ class ExcelWriter:
 
         self._make_cell_title(ws['A2'], 'right')
         ws['A2'] = 'Баланс:'
-        ws['B2'] = self.balance[0].balance  # RUB
+        ws['B2'] = self.balance[1].balance  # RUB
 
         self.workbook.save(self.filename)
 
@@ -182,7 +182,8 @@ def get_unit_type(position) -> str:
     bonds = ('FinEx Еврооблигации рос. компаний (RUB)',
              'FinEx Еврооблигации рос. компаний (USD)',
              'FinEx Казначейские облигации США (USD)',
-             'FinEx Казначейские облигации США')
+             'FinEx Казначейские облигации США',
+             'FinEx Облигаций развитых рынков')
 
     gold = ('FinEx Золото',)
 
@@ -223,7 +224,7 @@ def get_portfolio_price(balance, positions, courses) -> Decimal:
     price = Decimal(0)
     for position in positions:
         price += get_total_position_price_rub(position, courses)
-    price += Decimal(balance[0].balance)  # Баланс в RUB
+    price += Decimal(balance[1].balance)  # Баланс в RUB
 
     return price
 
